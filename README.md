@@ -1,18 +1,21 @@
 # VisaFund — Cloudflare preparation
 
-This is the current existing VisaFund source. See [CLOUDFLARE-MIGRATION.md](CLOUDFLARE-MIGRATION.md) before deploying. Authentication/provider, private staging access, and D1/R2 data migration are still required. No public deployment has been performed.
+This is the current existing VisaFund source. See [CLOUDFLARE-MIGRATION.md](CLOUDFLARE-MIGRATION.md) before deploying. Runtime authentication configuration, private staging access, and verified production data/file migration are still required. External builds now use backend-only Supabase private Storage; see [PRIVATE-STORAGE.md](PRIVATE-STORAGE.md). No public deployment has been performed.
+
+Cloudflare build branch: `cloudflare-preparation`. Build with `npm run build:cloudflare`; deploy with `npm run deploy:cloudflare`. Public Worker and preview URLs remain disabled in the repository configuration.
 
 ## Executed checks
 
 - External Cloudflare production build: passed.
 - TypeScript: passed.
 - Finance: 21 assertions passed.
-- Auth policy: 24 checks passed.
+- Auth policy: 29 checks passed.
 - Admin service: 56 checks passed.
-- External Worker and mocked Supabase provider: 96 checks passed, including forged native identity rejection, role redirects, MFA gating, owner isolation and logout/session replay rejection.
+- External Worker and mocked Supabase provider: 109 checks passed, including forged native identity rejection, role redirects, MFA gating, owner isolation and logout/session replay rejection.
+- Private Storage adapter: 23 checks passed using a mocked transport.
 - Real email delivery, real MFA, browser/mobile QA, data export/restore and deployed Cloudflare account limits: not tested.
 
-## Original project documentation
+## Original project documentation (historical Sites behavior; external configuration is described above)
 
 # VisaFund
 
