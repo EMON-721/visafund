@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import {createPrivateStorage,StorageUnavailable} from './lib/private-storage.ts';
+let checks=0;const ok=(v:unknown)=>{assert.ok(v);checks++};
+const requests:{url:string;init:RequestInit}[]=[];
+let response=()=>new Response('{}',{status:200});
+const transport:typeof fetch=async(input,init)=>{requests.push({url:String(input),init:init||{}});return response()};
+const store=createPrivateStorage({SUPABASE_URL:'https://synthetic.supabase.co',SUPABASE_STORAGE_SECRET_KEY:'sb_secret_synthetic_test_only',SUPABASE_STORAGE_BUCKET:'visafund-documents'},transport);
+assert.throws(()=>createPrivateStorage({}),StorageUnavailable);checks++;
+assert.throws(()=>createPrivateStorage({SUPABASE_URL:'http://synthetic.test',SUPABASE_STORAGE_SECRET_KEY:'sb_secret_test',SUPABASE_STORAGE_BUCKET:'visafund-documents'}));checks++;
+await store.put('owner/document',new TextEncoder().encode('%PDF-test').buffer,{httpMetadata:{contentType:'application/pdf'}});ok(requests[0].url.endsWith('/object/visafund-documents/owner/document'));ok((requests[0].init.headers as Record<string,string>)['x-upsert']==='false');ok(requests[0].init.redirect==='error');ok(!requests[0].url.includes('sb_secret'));ok(requests[0].init.signal);
+for(const key of ['owner/../document','/document','owner/','owner/document/extra','other%2fowner/id']){await assert.rejects(()=>store.get(key));checks++}
+await assert.rejects(()=>store.put('owner/id',new ArrayBuffer(0),{httpMetadata:{contentType:'text/csv'}}));checks++;
+await assert.rejects(()=>store.put('owner/id',new ArrayBuffer(1),{httpMetadata:{contentType:'text/html'}}));checks++;
+response=()=>new Response('private document');ok(!!(await store.get('owner/document'))?.body);
+response=()=>new Response('{}',{status:404});ok(await store.get('owner/missing')===null);
+response=()=>new Response(JSON.stringify({statusCode:'404'}),{status:400});ok(await store.get('owner/missing')===null);
+response=()=>new Response('secret backend diagnostic',{status:503});await assert.rejects(()=>store.get('owner/document'),e=>e instanceof StorageUnavailable&&!e.message.includes('diagnostic'));checks++;
+response=()=>new Response(JSON.stringify([{id:'id',name:'doc'}]));const page=await store.list({prefix:'owner/'});ok(page.objects[0].key==='owner/doc');ok(!page.truncated);
+await assert.rejects(()=>store.list({prefix:''}));checks++;
+await store.delete('owner/doc');const last=requests.at(-1)!;ok(last.init.method==='DELETE');ok(JSON.parse(String(last.init.body)).prefixes[0]==='owner/doc');
+console.log(`${checks} private storage checks passed (mock transport)`);

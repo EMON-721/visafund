@@ -11,7 +11,8 @@
     "EXTERNAL_HOSTING": "true",
     "AUTH_PROVIDER_ENABLED": "false",
     "SUPABASE_URL": "https://xtimiytiuyeetgnzlftg.supabase.co",
-    "APP_ORIGIN": "https://configure-before-enabling.invalid"
+    "APP_ORIGIN": "https://configure-before-enabling.invalid",
+    "SUPABASE_STORAGE_BUCKET": "visafund-documents"
   },
   "d1_databases": [
     {
@@ -19,12 +20,6 @@
       "database_name": "visafund-staging",
       "database_id": "54006c53-74c4-47e8-b494-2726cf9cb8cd",
       "migrations_dir": "drizzle"
-    }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "BUCKET",
-      "bucket_name": "visafund-private-staging"
     }
   ]
 }
