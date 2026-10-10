@@ -38,6 +38,7 @@ try{let db=await mf.getD1Database('DB');for(const f of (await readdir('drizzle')
 const forged=await mf.dispatchFetch('https://site.test/api/data',{headers:{'oai-authenticated-user-id':'other-user','oai-authenticated-user-email':'fake@example.test'}});assert.equal(forged.status,401);checks++;
 const anonymousLogin=await request('GET','/login');assert.ok(!anonymousLogin.includes('Continue with ChatGPT'));checks++;
 const anonymousRegister=await request('GET','/register');assert.ok(!anonymousRegister.includes('Existing ChatGPT workspace'));checks++;
+const google=await request('POST','/api/auth/google',{remember:false});assert.equal(new URL(google.redirect).origin,'https://auth.mock.test');assert.equal(new URL(google.redirect).searchParams.get('provider'),'google');checks+=2;await request('POST','/api/auth/google',{remember:false,role:'SUPER_ADMIN'},400);
 const configuration=await request('GET','/api/auth/config');assert.equal(configuration.configured,true);checks++;
 await request('POST','/api/auth/signup',{role:'SUPER_ADMIN'},400);
 const invalid=await request('POST','/api/auth/login',{email:'wrong@example.test',password:'WrongPassword123',remember:false},401);assert.equal(invalid.error,'Invalid email or password.');checks++;
