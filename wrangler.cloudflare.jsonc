@@ -17,7 +17,7 @@
     {
       "binding": "DB",
       "database_name": "visafund-staging",
-      "database_id": "00000000-0000-4000-8000-000000000000",
+      "database_id": "54006c53-74c4-47e8-b494-2726cf9cb8cd",
       "migrations_dir": "drizzle"
     }
   ],
