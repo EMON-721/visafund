@@ -13,7 +13,9 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
     "build:cloudflare": "vite build --config vite.cloudflare.config.ts",
-    "deploy:cloudflare": "wrangler deploy --config dist/server/wrangler.json"
+    "deploy:cloudflare": "wrangler deploy --config dist/server/wrangler.json",
+    "test:auth-policy": "node --experimental-strip-types tests-auth.ts",
+    "test:auth-cloudflare": "node tests-cloudflare-auth.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
