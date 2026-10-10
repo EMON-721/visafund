@@ -1,0 +1,1 @@
+export const themeBootstrap = `(function(){try{var t=localStorage.getItem('visafund-theme');if(t==='dark'||t==='light'){document.documentElement.classList.toggle('dark',t==='dark');document.documentElement.style.colorScheme=t;}}catch(e){}})();`;

@@ -1,0 +1,6 @@
+import {authOrigin,authConfigured,supabaseClient,clearLogoutMarker} from '@/lib/supabase-auth';
+import {enrollVerifiedProvider,issueRecovery} from '@/lib/auth-actions';
+import {isProvisionedAdmin} from '@/lib/platform';
+import {fail,HttpError} from '@/lib/server';
+export const dynamic='force-dynamic';
+export async function GET(request:Request){try{if(!authConfigured())throw new HttpError(503,'Authentication provider is not configured');const p=new URL(request.url).searchParams,token=p.get('token_hash'),type=p.get('type');if(!token||token.length>2048||!['signup','email','recovery'].includes(type||''))throw new HttpError(400,'Invalid verification link');const client=await supabaseClient(true);const {error}=await client.auth.verifyOtp({token_hash:token,type:type as 'signup'|'email'|'recovery'});if(error)throw new HttpError(400,'Verification link is invalid or expired');if(type==='recovery'){await clearLogoutMarker();await issueRecovery();return Response.redirect(authOrigin()+'/auth/reset-password',303)}await clearLogoutMarker();const owner=await enrollVerifiedProvider();return Response.redirect(authOrigin()+(owner?(await isProvisionedAdmin(owner)?'/login?step=mfa':'/dashboard'):'/register?complete=1'),303)}catch(e){return fail(e)}}

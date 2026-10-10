@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import {readFile,readdir} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
+const dir=(await readdir('node_modules/.pnpm')).find(s=>s.startsWith('miniflare@'))!;
+const {Miniflare}=await import(pathToFileURL(resolve('node_modules/.pnpm',dir,'node_modules/miniflare/dist/src/index.js')).href);
+import {freshMFA,recentPassword,signupSchema,providerOwner,resolveProviderOwner,linkProviderOwner} from './lib/auth-policy.ts';
+let checks=0;
+const ok=(value:unknown)=>{assert.ok(value);checks++};
+const no=(value:unknown)=>{assert.equal(value,false);checks++};
+const subject='11111111-1111-4111-8111-111111111111',other='22222222-2222-4222-8222-222222222222';
+const valid={sub:subject,aal:'aal2',exp:2000,amr:[{method:'totp',timestamp:950}]};
+ok(freshMFA(valid,subject,1000));no(freshMFA({...valid,aal:'aal1'},subject,1000));no(freshMFA(valid,other,1000));no(freshMFA({...valid,exp:900},subject,1000));no(freshMFA({...valid,amr:[{method:'password',timestamp:950}]},subject,1000));no(freshMFA({...valid,amr:[{method:'totp',timestamp:600}]},subject,1000));no(freshMFA({...valid,amr:[{method:'totp',timestamp:1100}]},subject,1000));ok(recentPassword({amr:[{method:'password',timestamp:950}]},1000));no(recentPassword({amr:[]},1000));
+const registration={name:'Synthetic user',email:'synthetic@example.test',password:'SecurePassword123',confirmation:'SecurePassword123',country:'Bangladesh',currency:'BDT',language:'en',agree:true};ok(signupSchema.safeParse(registration).success);no(signupSchema.safeParse({...registration,role:'SUPER_ADMIN'}).success);no(signupSchema.safeParse({...registration,confirmation:'Mismatch1234'}).success);no(signupSchema.safeParse({...registration,password:'weak'}).success);no(signupSchema.safeParse({...registration,agree:false}).success);
+assert.equal(providerOwner(subject),'supabase:'+subject);checks++;
+const mf=new Miniflare({script:'export default {fetch(){return new Response("test")}}',modules:true,compatibilityDate:'2026-05-15',d1Databases:['DB']});
+try{const db=await mf.getD1Database('DB') as D1Database;for(const f of (await readdir('drizzle')).filter(f=>f.endsWith('.sql')).sort())await db.exec((await readFile('drizzle/'+f,'utf8')).replaceAll('--> statement-breakpoint','').replaceAll('\n',' '));const issuer='https://provider.example.test/auth/v1';assert.equal(await resolveProviderOwner(db,issuer,subject),'supabase:'+subject);checks++;
+await db.prepare("INSERT INTO accounts(id,owner,name,bank,currency,opening,date,details,created) VALUES('existing','legacy-owner','Test','Test','BDT',100,'2026-01-01','{}','2026-01-01')").run();assert.equal(await linkProviderOwner(db,issuer,subject,'legacy-owner'),'legacy-owner');checks++;assert.equal(await resolveProviderOwner(db,issuer,subject),'legacy-owner');checks++;
+assert.equal((await db.prepare('SELECT owner FROM accounts WHERE id=?').bind('existing').first<{owner:string}>())?.owner,'legacy-owner');checks++;
+await assert.rejects(()=>linkProviderOwner(db,issuer,subject,'different-owner'));checks++;await assert.rejects(()=>linkProviderOwner(db,issuer,other,'legacy-owner'));checks++;
+await db.prepare("INSERT INTO accounts(id,owner,name,bank,currency,opening,date,details,created) VALUES('other',?,'Test','Test','BDT',100,'2026-01-01','{}','2026-01-01')").bind(providerOwner(other)).run();await assert.rejects(()=>linkProviderOwner(db,issuer,other,'different-owner'));checks++;
+await db.prepare("DELETE FROM accounts WHERE id='other'").run();await db.prepare("INSERT INTO platform_users(id,name,email,status,created,last_seen,preferences) VALUES(?,'Test','test@example.test','banned','2026-01-01','2026-01-01','{}')").bind(providerOwner(other)).run();await assert.rejects(()=>linkProviderOwner(db,issuer,other,'different-owner'));checks++;
+ok((await db.prepare("SELECT id FROM platform_audit WHERE action='identity.link'").all()).results.length>0);
+console.log(`Authentication policy: ${checks} checks passed (synthetic policy/D1 checks; no real provider email/MFA flow).`)}finally{await mf.dispose()}

@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {decodeAccounts,decodeTransactions,decodeWorkspace} from './lib/view-model.ts';
+let checks=0;
+const rejects=(f:()=>unknown)=>{assert.throws(f);checks++};
+const account={id:'a',opening:120000000,currency:'BDT',date:'2026-10-01',details:'{}'};
+assert.equal(decodeAccounts([account])[0].opening,120000000);checks++;
+rejects(()=>decodeAccounts([{...account,opening:undefined}]));
+rejects(()=>decodeAccounts([{...account,opening:1.25}]));
+rejects(()=>decodeAccounts([{...account,opening:'120000000'}]));
+const transaction={id:'t',account:'a',date:'2026-10-02',amount:4500000,direction:'credit',details:'{}'};
+assert.equal(decodeTransactions([transaction])[0].amount,4500000);checks++;
+rejects(()=>decodeTransactions([{...transaction,amount:undefined}]));
+rejects(()=>decodeTransactions([{...transaction,direction:'unknown'}]));
+rejects(()=>decodeTransactions([{...transaction,account:''}]));
+assert.equal(decodeWorkspace({accounts:[account],records:[],documents:[],rules:[],totals:[]}).accounts.length,1);checks++;
+rejects(()=>decodeWorkspace({accounts:[account],records:[],documents:[],rules:[]}));
+console.log(`${checks} view-model checks passed`);
