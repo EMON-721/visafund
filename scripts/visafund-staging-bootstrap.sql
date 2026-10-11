@@ -1,11 +1,3 @@
--- VisaFund staging bootstrap: reviewed migrations 0000 through 0006.
--- Only for visafund-staging with an empty schema or matching tables from these migrations.
--- Not a production migration or data transfer. Does not provision administrators.
--- Keep the D1 Time Travel bookmark before executing.
--- IF NOT EXISTS permits retry after partial console execution; it does not repair mismatched schemas.
--- This manual bootstrap does not populate Wrangler's migration history.
-
--- 0000_public_mastermind
 CREATE TABLE IF NOT EXISTS `accounts` (
 	`id` text PRIMARY KEY NOT NULL,
 	`owner` text NOT NULL,
@@ -85,7 +77,6 @@ CREATE INDEX IF NOT EXISTS `tx_owner_date` ON `transactions` (`owner`,`date`);
 CREATE INDEX IF NOT EXISTS `tx_account_date` ON `transactions` (`account`,`date`);
 CREATE UNIQUE INDEX IF NOT EXISTS `tx_duplicate` ON `transactions` (`owner`,`fingerprint`);
 
--- 0001_luxuriant_the_hood
 CREATE TABLE IF NOT EXISTS `limits` (
 	`id` text PRIMARY KEY NOT NULL,
 	`stamp` integer NOT NULL,
@@ -93,7 +84,6 @@ CREATE TABLE IF NOT EXISTS `limits` (
 );
 
 
--- 0002_fresh_tag
 CREATE TABLE IF NOT EXISTS `platform_audit` (
 	`id` text PRIMARY KEY NOT NULL,
 	`actor` text NOT NULL,
@@ -127,7 +117,6 @@ CREATE TABLE IF NOT EXISTS `platform_users` (
 
 CREATE INDEX IF NOT EXISTS `platform_users_status_created` ON `platform_users` (`status`,`created`);
 
--- 0003_clever_the_anarchist
 CREATE TABLE IF NOT EXISTS `platform_deletion_jobs` (
 	`id` text PRIMARY KEY NOT NULL,
 	`target` text NOT NULL,
@@ -140,7 +129,6 @@ CREATE TABLE IF NOT EXISTS `platform_deletion_jobs` (
 
 CREATE INDEX IF NOT EXISTS `platform_deletion_jobs_status` ON `platform_deletion_jobs` (`status`,`eligible_after`);
 
--- 0004_optimal_puff_adder
 CREATE TABLE IF NOT EXISTS `auth_flows` (
 	`hash` text PRIMARY KEY NOT NULL,
 	`subject` text NOT NULL,
@@ -160,7 +148,6 @@ CREATE TABLE IF NOT EXISTS `auth_identities` (
 CREATE UNIQUE INDEX IF NOT EXISTS `auth_identity_subject` ON `auth_identities` (`issuer`,`subject`);
 CREATE UNIQUE INDEX IF NOT EXISTS `auth_identity_owner` ON `auth_identities` (`issuer`,`owner`);
 
--- 0005_new_gideon
 CREATE TABLE IF NOT EXISTS `exchange_cache` (
 	`id` text PRIMARY KEY NOT NULL,
 	`body` text NOT NULL,
@@ -168,7 +155,6 @@ CREATE TABLE IF NOT EXISTS `exchange_cache` (
 );
 
 
--- 0006_robust_wallflower
 CREATE TABLE IF NOT EXISTS `platform_roles` (
 	`owner` text PRIMARY KEY NOT NULL,
 	`role` text DEFAULT 'USER' NOT NULL CHECK (`role` IN ('USER','SUPER_ADMIN')),
@@ -189,5 +175,4 @@ CREATE UNIQUE INDEX IF NOT EXISTS `revoked_session_key` ON `auth_revoked_session
 INSERT OR IGNORE INTO platform_roles(owner,role,provisioned_by,created) SELECT id,'USER','migration',created FROM platform_users;
 
 
--- Expected: 16 application tables (excluding Cloudflare internal tables).
 SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE '_cf_%' ORDER BY name;
