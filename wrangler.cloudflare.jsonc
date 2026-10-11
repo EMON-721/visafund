@@ -9,9 +9,9 @@
   "preview_urls": false,
   "vars": {
     "EXTERNAL_HOSTING": "true",
-    "AUTH_PROVIDER_ENABLED": "false",
+    "AUTH_PROVIDER_ENABLED": "true",
     "SUPABASE_URL": "https://xtimiytiuyeetgnzlftg.supabase.co",
-    "APP_ORIGIN": "https://configure-before-enabling.invalid",
+    "APP_ORIGIN": "https://visafund.visafund-platform.workers.dev",
     "SUPABASE_STORAGE_BUCKET": "visafund-documents"
   },
   "d1_databases": [
