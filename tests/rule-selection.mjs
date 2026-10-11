@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {selectCurrentRules} from '../lib/rule-selection.ts';
+const row=(status,version,extra={})=>({country:'Germany',version,created:'2026-10-'+String(version).padStart(2,'0'),data:JSON.stringify({status,effective:'2026-10-01',verified:'2026-10-01',source:'https://example.gov/rule',category:'Student',nationality:'BD',jurisdiction:'National',...extra})});
+assert.equal(selectCurrentRules([row('Verified',1)],'2026-10-11').length,1);
+assert.equal(selectCurrentRules([row('Verified',1),row('Withdrawn',2)],'2026-10-11').length,0);
+assert.equal(selectCurrentRules([row('Verified',1),row('Draft',2)],'2026-10-11')[0].version,1);
+assert.equal(selectCurrentRules([row('Verified',1),row('Withdrawn',2,{effective:'2026-11-01'})],'2026-10-11')[0].version,1);
+assert.equal(selectCurrentRules([row('Verified',1),row('Verified',2)],'2026-10-11')[0].version,2);
+assert.equal(selectCurrentRules([row('Verified',1),row('Withdrawn',2,{nationality:'US'})],'2026-10-11').length,1);
+assert.equal(selectCurrentRules([row('Verified',1,{source:'javascript:alert(1)'})],'2026-10-11').length,0);
+assert.equal(selectCurrentRules([row('Verified',1,{verified:'2026-11-01'})],'2026-10-11').length,0);
+assert.equal(selectCurrentRules([{country:'Germany',data:'invalid'}],'2026-10-11').length,0);
+console.log('9 requirement-selection checks passed.');
