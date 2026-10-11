@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
-const dir=(await readdir('node_modules/.pnpm')).find(s=>s.startsWith('miniflare@'))!;
-const {Miniflare}=await import(pathToFileURL(resolve('node_modules/.pnpm',dir,'node_modules/miniflare/dist/src/index.js')).href);
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const runtime=createRequire(require.resolve('wrangler/package.json'));
+const {Miniflare}=await import(pathToFileURL(runtime.resolve('miniflare')).href);
 import {freshMFA,recentPassword,recentSignIn,emailSchema,signupSchema,providerOwner,resolveProviderOwner,linkProviderOwner} from './lib/auth-policy.ts';
 let checks=0;
 const ok=(value:unknown)=>{assert.ok(value);checks++};
@@ -25,3 +27,4 @@ await db.prepare("INSERT INTO accounts(id,owner,name,bank,currency,opening,date,
 await db.prepare("DELETE FROM accounts WHERE id='other'").run();await db.prepare("INSERT INTO platform_users(id,name,email,status,created,last_seen,preferences) VALUES(?,'Test','test@example.test','banned','2026-01-01','2026-01-01','{}')").bind(providerOwner(other)).run();await assert.rejects(()=>linkProviderOwner(db,issuer,other,'different-owner'));checks++;
 ok((await db.prepare("SELECT id FROM platform_audit WHERE action='identity.link'").all()).results.length>0);
 console.log(`Authentication policy: ${checks} checks passed (synthetic policy/D1 checks; no real provider email/MFA flow).`)}finally{await mf.dispose()}
+

@@ -2,9 +2,11 @@
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
+import {createRequire} from 'node:module';
 import {resolve} from 'node:path';
-const dir=(await readdir('node_modules/.pnpm')).find(s=>s.startsWith('miniflare@'));
-const {Miniflare,createFetchMock}=await import(pathToFileURL(resolve('node_modules/.pnpm',dir,'node_modules/miniflare/dist/src/index.js')).href);
+const require=createRequire(import.meta.url);
+const runtime=createRequire(require.resolve('wrangler/package.json'));
+const {Miniflare,createFetchMock}=await import(pathToFileURL(runtime.resolve('miniflare')).href);
 async function modulesAt(path){let files=[];for(const d of await readdir(path,{withFileTypes:true})){const p=resolve(path,d.name);if(d.isDirectory())files.push(...await modulesAt(p));else if(d.name.endsWith('.js')||d.name.endsWith('.mjs'))files.push({type:'ESModule',path:p})}return files}
 const modules=await modulesAt('dist/server');modules.sort((a,b)=>a.path===resolve('dist/server/index.js')?-1:b.path===resolve('dist/server/index.js')?1:0);
 const subject='11111111-1111-4111-8111-111111111111',sessionId='33333333-3333-4333-8333-333333333333',issuer='https://auth.mock.test/auth/v1';
@@ -72,12 +74,22 @@ await db.prepare("INSERT INTO accounts(id,owner,name,bank,currency,opening,date,
 const adminView=await request('GET','/api/platform?mode=users');assert.ok(!JSON.stringify(adminView).includes('PRIVATE_FINANCE_MARKER'));assert.ok(!JSON.stringify(adminView).includes('987654321'));checks+=2;
 const ownData=await request('GET','/api/data');assert.equal(ownData.accounts.length,0);checks++;
 await request('GET','/api/platform?mode=transactions',null,400);
+const modulesBefore=await request('GET','/api/platform?mode=modules');assert.equal(modulesBefore.modules.length,15);checks++;
+await request('POST','/api/platform',{action:'save-module',data:{route:'accounts',enabled:false,label:'Bank accounts',description:'Synthetic maintenance'}});
+await request('POST','/api/data',{kind:'account',data:{}},403);
+const disabledPage=await request('GET','/accounts');assert.ok(disabledPage.includes('temporarily unavailable'));checks++;
+assert.ok(await db.prepare("SELECT id FROM accounts WHERE id='private'").first());checks++;
+await request('POST','/api/platform',{action:'save-module',data:{route:'accounts',enabled:true,label:'Bank accounts',description:''}});
+const modulesRestored=await request('GET','/api/platform?mode=modules');assert.equal(modulesRestored.modules.find(m=>m.route==='accounts').enabled,true);checks++;
+const health=await request('GET','/api/platform?mode=health');assert.equal(health.schema,'ready');assert.equal(health.financialDataInspected,false);checks+=2;
+
 
 await request('POST','/api/auth/logout',{});await request('GET','/api/platform',null,401);
 await db.prepare("UPDATE platform_users SET status='suspended' WHERE id=?").bind('supabase:'+subject).run();
 const suspended=await request('POST','/api/auth/login',{email:user.email,password:'SyntheticPassword123',remember:false},403);assert.ok(suspended.error.includes('suspended'));checks++;await request('GET','/api/data',null,401);
 await db.prepare("UPDATE platform_users SET status='active' WHERE id=?").bind('supabase:'+subject).run();
 await db.prepare("UPDATE platform_roles SET role='USER' WHERE owner=?").bind('supabase:'+subject).run();
-const again=await request('POST','/api/auth/login',{email:user.email,password:'SyntheticPassword123',remember:false});assert.equal(again.redirect,'/dashboard');checks++;await db.prepare("UPDATE platform_users SET status='banned' WHERE id=?").bind('supabase:'+subject).run();await request('GET','/api/data',null,403);await db.prepare("UPDATE platform_users SET status='active' WHERE id=?").bind('supabase:'+subject).run();await request('POST','/api/auth/logout',{});await request('GET','/api/data',null,401);
+const again=await request('POST','/api/auth/login',{email:user.email,password:'SyntheticPassword123',remember:false});assert.equal(again.redirect,'/dashboard');checks++;await request('POST','/api/platform',{action:'save-module',data:{route:'accounts',enabled:false,label:'Bank accounts',description:''}},403);await db.prepare("UPDATE platform_users SET status='banned' WHERE id=?").bind('supabase:'+subject).run();await request('GET','/api/data',null,403);await db.prepare("UPDATE platform_users SET status='active' WHERE id=?").bind('supabase:'+subject).run();await request('POST','/api/auth/logout',{});await request('GET','/api/data',null,401);
 console.log(`Supabase SDK contract: ${checks} checks passed against a mocked provider; no real email delivery or MFA claim.`)
 }finally{await mf.dispose();await fetchMock.close()}
+
