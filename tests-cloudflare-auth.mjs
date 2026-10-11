@@ -47,6 +47,15 @@ const invalid=await request('POST','/api/auth/login',{email:'wrong@example.test'
 const logged=await request('POST','/api/auth/login',{email:user.email,password:'SyntheticPassword123',remember:false},200,false);assert.equal(logged.redirect,'/dashboard');checks++;
 const membership=await request('GET','/api/membership');assert.equal(membership.role,'USER');assert.equal(membership.member.id,'supabase:'+subject);checks+=2;
 const data=await request('GET','/api/data');assert.equal(data.accounts.length,0);checks++;
+const accountInput={name:'Synthetic own account',bank:'Synthetic bank',currency:'BDT',date:'2026-01-01',holder:'Synthetic user',ownership:'Self',type:'Savings account',country:'Bangladesh'};
+const zeroAccount=await request('POST','/api/data',{kind:'account',data:accountInput},201);
+const blankAccount=await request('POST','/api/data',{kind:'account',data:{...accountInput,name:'Blank opening',opening:''}},201);
+const accountState=await request('GET','/api/data');assert.equal(accountState.accounts.length,2);assert.ok(accountState.accounts.every(a=>a.opening===0));assert.ok(accountState.accounts.every(a=>JSON.parse(a.details).masked===''));checks+=3;
+await request('POST','/api/data',{kind:'account',data:{...accountInput,opening:'-1'}},400);
+await request('POST','/api/data',{kind:'transaction',data:{account:'not-owned',date:'2026-10-01',amount:'125.50',direction:'credit',description:'Synthetic deposit',category:'Salary'}},404);
+await request('POST','/api/data',{kind:'transaction',data:{account:zeroAccount.id,date:'2026-10-01',amount:'125.50',direction:'credit',description:'Synthetic deposit',category:'Salary'}},201);
+const recorded=await request('GET','/api/data');assert.ok(recorded.totals.some(t=>t.account===zeroAccount.id&&t.amount===12550));checks++;
+
 await request('GET','/api/platform',null,403);
 await request('POST','/api/auth/reset',{password:'NewSyntheticPassword123',confirmation:'NewSyntheticPassword123'},403);
 await request('POST','/api/auth/link',{confirm:true},403);
@@ -72,7 +81,7 @@ const factorList=await request('POST','/api/auth/mfa-factors',{});assert.equal(f
 const verified=await request('POST','/api/auth/mfa-verify',{factorId,code:'123456'});assert.equal(verified.redirect,'/admin/dashboard');checks++;
 await db.prepare("INSERT INTO accounts(id,owner,name,bank,currency,opening,date,details,created) VALUES('private','other-user','PRIVATE_FINANCE_MARKER','Bank','BDT',987654321,'2026-01-01','{}','2026-01-01')").run();
 const adminView=await request('GET','/api/platform?mode=users');assert.ok(!JSON.stringify(adminView).includes('PRIVATE_FINANCE_MARKER'));assert.ok(!JSON.stringify(adminView).includes('987654321'));checks+=2;
-const ownData=await request('GET','/api/data');assert.equal(ownData.accounts.length,0);checks++;
+const ownData=await request('GET','/api/data');assert.equal(ownData.accounts.length,2);assert.ok(ownData.accounts.every(a=>a.owner==='supabase:'+subject));checks+=2;
 await request('GET','/api/platform?mode=transactions',null,400);
 const modulesBefore=await request('GET','/api/platform?mode=modules');assert.equal(modulesBefore.modules.length,15);checks++;
 await request('POST','/api/platform',{action:'save-module',data:{route:'accounts',enabled:false,label:'Bank accounts',description:'Synthetic maintenance'}});
@@ -82,6 +91,18 @@ assert.ok(await db.prepare("SELECT id FROM accounts WHERE id='private'").first()
 await request('POST','/api/platform',{action:'save-module',data:{route:'accounts',enabled:true,label:'Bank accounts',description:''}});
 const modulesRestored=await request('GET','/api/platform?mode=modules');assert.equal(modulesRestored.modules.find(m=>m.route==='accounts').enabled,true);checks++;
 const health=await request('GET','/api/platform?mode=health');assert.equal(health.schema,'ready');assert.equal(health.financialDataInspected,false);checks+=2;
+await request('POST','/api/platform',{action:'save-module',data:{route:'accounts',enabled:true,label:'Bank accounts',description:'',allowCreate:false,allowEdit:false,allowDelete:false}});
+await request('POST','/api/data',{kind:'account',data:accountInput},403);
+await request('PATCH','/api/data',{kind:'account',id:blankAccount.id,data:{...accountInput,opening:'0'}},403);
+await request('DELETE','/api/data',{kind:'account',id:blankAccount.id},403);
+assert.ok(await db.prepare('SELECT id FROM accounts WHERE id=?').bind(blankAccount.id).first());checks++;
+await request('POST','/api/platform',{action:'save-module',data:{route:'accounts',enabled:true,label:'Bank accounts',description:'',allowCreate:true,allowEdit:true,allowDelete:true}});
+await request('POST','/api/platform',{action:'save-module',data:{route:'dashboard',enabled:true,label:'Overview',description:'',heading:'Synthetic overview',parts:{balance:{enabled:false,label:'Recorded balance'}}}});
+const overview=await request('GET','/api/platform?mode=modules');assert.equal(overview.modules.find(m=>m.route==='dashboard').parts.balance.enabled,false);checks++;
+await request('POST','/api/platform',{action:'save-retention-policy',data:{days:30,version:'synthetic-v1',confirmation:'WRONG'}},400);
+await request('POST','/api/platform',{action:'save-retention-policy',data:{days:30,version:'synthetic-v1',confirmation:'APPROVE RETENTION 30 DAYS'}});
+const retention=await request('GET','/api/platform?mode=users');assert.equal(retention.retentionPolicy.days,30);checks++;
+
 
 
 await request('POST','/api/auth/logout',{});await request('GET','/api/platform',null,401);

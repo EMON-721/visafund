@@ -3,7 +3,7 @@ import {readFile,readdir} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createRequire} from 'node:module';
-import {readPlatform,saveModuleSetting,moderateAccount,savePlatformContent,removePlatformContent,requestAccountDeletion,executeAccountDeletion} from './lib/admin-service.ts';
+import {readPlatform,savedRetentionPolicy,saveRetentionPolicy,saveModuleSetting,moderateAccount,savePlatformContent,removePlatformContent,requestAccountDeletion,executeAccountDeletion} from './lib/admin-service.ts';
 const require=createRequire(import.meta.url);
 const runtime=createRequire(require.resolve('wrangler/package.json'));
 const {Miniflare}=await import(pathToFileURL(runtime.resolve('miniflare')).href);
@@ -33,6 +33,11 @@ await db.prepare('ALTER TABLE platform_content RENAME COLUMN kind TO broken_kind
 await assert.rejects(()=>savePlatformContent(db,'admin',{kind:'official_source',title:'Bad URL',body:'javascript:alert(1)',status:'published'}));checks++;
 await assert.rejects(()=>savePlatformContent(db,'admin',{kind:'financial_rule',title:'Unsafe rule',body:'Invented rule',status:'published'}));checks++;
 await assert.rejects(()=>requestAccountDeletion(db,'admin',{target:'a',confirmation:'DELETE a',reason:'Synthetic deletion'},['admin'],null));checks++;
+ok(await savedRetentionPolicy(db)===null);
+await assert.rejects(()=>saveRetentionPolicy(db,'admin',{days:30,version:'synthetic-v1',confirmation:'WRONG'}));checks++;
+await saveRetentionPolicy(db,'admin',{days:30,version:'synthetic-v1',confirmation:'APPROVE RETENTION 30 DAYS'});ok((await savedRetentionPolicy(db))?.days===30);
+await assert.rejects(()=>savePlatformContent(db,'admin',{kind:'setting',title:'account-retention',body:'{}',status:'published'}));checks++;
+
 await assert.rejects(()=>requestAccountDeletion(db,'admin',{target:'a',confirmation:'DELETE b',reason:'Synthetic deletion'},['admin'],{version:'synthetic',days:0}));checks++;
 const job=await requestAccountDeletion(db,'admin',{target:'a',confirmation:'DELETE a',reason:'Synthetic deletion'},['admin'],{version:'synthetic',days:0});ok(job.status==='pending');ok((await db.prepare('SELECT status FROM platform_users WHERE id=?').bind('a').first())?.status==='deletion_pending');ok(!!await bucket.get('a/a-doc'));
 await assert.rejects(()=>executeAccountDeletion(db,bucket,'admin',job.job,{version:'wrong',days:0}));checks++;
