@@ -155,3 +155,27 @@ body {
 
 /* Auth pages only: retain the financial workspace's existing presentation. */
 .auth-screen{background:radial-gradient(ellipse at top,#d5f2e5 0,transparent 55%),#f3f7fa;color:#102a3f}.auth-screen>header{background:#fff}.auth-screen .public-main{max-width:660px;padding-top:38px;padding-bottom:48px}.auth-screen .public-auth{background:#fff;color:#102a3f;border:1px solid #dbe6e8;border-radius:18px;padding:36px;box-shadow:0 16px 48px #102a3f0c;margin:12px auto}.auth-screen h1{font-size:28px;letter-spacing:-.7px;text-align:center}.auth-screen .public-auth>p{text-align:center;color:#52687a}.auth-screen label{font-size:14px;font-weight:600}.auth-screen input,.auth-screen select{background:#fff;color:#102a3f;border-color:#cfdcdf;min-height:46px}.auth-screen .auth-password button{background:#edf7f2;color:#153c34;min-height:46px}.auth-screen .primary{background:#102a3f;color:#b7f0d5;min-height:48px;border-radius:9px}.auth-screen .notice{font-size:13px;border:1px solid #dbe6e8;background:#f1f7f5;color:#33594d;border-radius:9px;padding:14px}.auth-screen .terms-checkbox input{min-height:18px}.auth-options{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:13px}.auth-screen .terms-checkbox{font-weight:400}.auth-screen .auth-links{justify-content:center;color:#52687a}.auth-screen .auth-links a,.auth-screen .auth-options a,.auth-screen .terms-checkbox a{color:#087f5c;text-decoration:underline;text-underline-offset:3px}.password-strength{width:100%;height:8px}.auth-screen .auth-legacy p{font-size:13px}.auth-screen .auth-error{color:#a92323}.auth-language{margin-left:auto}.public-header-links{display:flex;align-items:center;gap:22px;flex-wrap:wrap}@media(max-width:640px){.auth-screen>header{flex-direction:row;align-items:center;flex-wrap:wrap;padding:16px;gap:12px}.auth-screen>header nav{width:100%;order:3}.auth-screen .public-main{padding:18px 12px 30px}.auth-screen .public-auth{padding:24px 18px;border-radius:12px}.auth-screen h1{font-size:24px}.auth-screen .auth-password{gap:6px}.auth-screen form{gap:18px}.auth-screen .terms-checkbox{font-size:13px}.public-header-links{gap:12px}}
+
+/* Public and authentication surfaces use VisaFund's explicit navy/mint palette. */
+.public-shell{--background:#f3f7fa;--foreground:#102a3f;--card:#fff;--card-foreground:#102a3f;--muted:#edf5f2;--muted-foreground:#52687a;--border:#d7e3e8;--input:#c5d5df;--primary:#12394a;--primary-foreground:#fff;background:#f3f7fa;color:#102a3f;color-scheme:light}
+.public-shell>header{background:#fff;color:#102a3f}
+.public-shell .brand{color:#102a3f}
+.public-shell p,.public-shell small{color:#52687a}
+.public-shell .settings-panel{background:#fff;color:#102a3f}
+.public-shell .footer{color:#52687a;font-size:13px;line-height:1.7}
+.public-shell .footer a:hover{color:#087f5c}
+.public-hero{background:#102a3f;color:#fff;border-radius:18px;padding:40px;box-shadow:0 12px 35px #102a3f14}
+.public-hero .hero-logo{display:block;margin-bottom:20px;border:1px solid #50756c;border-radius:18px}
+.public-hero h1{max-width:780px;font-size:36px;line-height:1.25;margin-bottom:18px;color:#fff}
+.public-hero p{color:#c9dfe7;max-width:720px;line-height:1.75;margin-bottom:26px}
+.public-hero .heading-actions{justify-content:flex-start;max-width:none}
+.public-hero .primary{background:#81e4bb;color:#102a3f;border-color:#81e4bb}
+.public-hero .secondary{background:#18394c;color:#fff;border-color:#466476}
+.public-hero .secondary:hover{background:#244a5c}
+.auth-screen .auth-google{width:100%;min-height:48px;background:#fff;color:#102a3f;border-color:#b9ced7;margin-top:4px}
+.auth-screen .auth-google:hover{background:#edf7f2}
+.auth-divider{display:flex;align-items:center;gap:14px;color:#52687a;font-size:13px;margin:10px 0}
+.auth-divider:before,.auth-divider:after{content:"";height:1px;background:#d7e3e8;flex:1}
+.auth-screen .auth-mfa p{color:#52687a}
+.auth-screen .auth-mfa code{background:#edf5f2;color:#102a3f}
+@media(max-width:767px){.public-hero{padding:26px 20px;border-radius:12px}.public-hero h1{font-size:28px}.public-hero .heading-actions{width:100%}.public-hero .heading-actions a{white-space:normal;text-align:center}.public-shell .footer{font-size:13px}}
