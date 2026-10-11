@@ -23,6 +23,7 @@ export default async function RootLayout({
     <html lang="en" className={theme==="dark"?"dark":undefined} suppressHydrationWarning>
       <head>
         <title>VisaFund</title>
+        <meta name="google-site-verification" content="RUb4BeD1Iwr5BfO6swomXIhNq65QlHbxqvUo9ykBM9w" />
         <style dangerouslySetInnerHTML={{__html:"html,body{background:#f4f7fa}html.dark,html.dark body{background:#0f1b26;color-scheme:dark}"}}/>
         <script dangerouslySetInnerHTML={{__html:themeBootstrap}}/>
       </head>
