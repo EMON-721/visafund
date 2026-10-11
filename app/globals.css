@@ -179,3 +179,38 @@ body {
 .auth-screen .auth-mfa p{color:#52687a}
 .auth-screen .auth-mfa code{background:#edf5f2;color:#102a3f}
 @media(max-width:767px){.public-hero{padding:26px 20px;border-radius:12px}.public-hero h1{font-size:28px}.public-hero .heading-actions{width:100%}.public-hero .heading-actions a{white-space:normal;text-align:center}.public-shell .footer{font-size:13px}}
+
+/* Keep administration readable independently of the workspace theme. */
+.admin-shell{--background:#f3f7fa;--foreground:#102a3f;--card:#fff;--card-foreground:#102a3f;--muted:#edf3f6;--muted-foreground:#52687a;--border:#d7e3e8;--input:#bdcfd9;--primary:#12394a;--primary-foreground:#fff;background:#f3f7fa;color:#102a3f;color-scheme:light;font-family:Arial,'Noto Sans Bengali',sans-serif}
+.admin-shell aside{background:#102a3f;gap:5px;padding:24px 16px;align-self:start;position:sticky;top:0;max-height:100dvh;overflow:auto}
+.admin-shell aside .brand{padding:8px;margin-bottom:16px}
+.admin-shell aside p{color:#b0c7d6;font-size:11px;letter-spacing:1.1px;padding:8px;margin-bottom:8px}
+.admin-shell aside>a:not(.brand){font-size:14px;line-height:1.5;border-radius:7px;padding:10px 12px;color:#d5e4ec}
+.admin-shell aside>a:hover{background:#1b4150;color:#fff}
+.admin-shell aside>a[aria-current=page]{background:#244956;color:#a2e5c5;font-weight:700}
+.admin-shell main{padding:28px 32px 40px;max-width:1400px}
+.admin-shell .top-actions{justify-content:flex-end;flex-wrap:wrap;margin-bottom:28px;padding-bottom:18px;border-bottom:1px solid #d7e3e8;font-size:14px}
+.admin-shell h1{font-size:30px;color:#102a3f}
+.admin-shell p,.admin-shell small{color:#52687a}
+.admin-shell .settings-panel{padding:24px;background:#fff}
+.admin-console>h2,.admin-console>h3{margin:24px 0 12px}
+.admin-console>p{margin:12px 0;line-height:1.7}
+.admin-console form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:22px;margin:20px 0;background:#f7fafb;border:1px solid #d7e3e8;border-radius:12px;align-items:end}
+.admin-console label{display:grid;gap:8px;font-size:14px;font-weight:600;color:#18394a;min-width:0}
+.admin-console input,.admin-console select,.admin-console textarea{width:100%;min-height:44px;border:1px solid #bdcfd9;background:#fff;color:#102a3f;border-radius:8px;padding:10px 12px;font-size:14px}
+.admin-console label:has(textarea){grid-column:1/-1}
+.admin-console textarea{min-height:160px;font-weight:400}
+.admin-console .metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:24px 0}
+.admin-console .metric-grid article{padding:22px;margin:0;background:#f5faf8;border-color:#d7e8e0}
+.admin-console .metric-grid h3{font-size:14px;color:#52687a;text-transform:capitalize}
+.admin-console .metric-grid strong{display:block;font-size:34px;color:#102a3f;margin-top:12px}
+.admin-shortcuts{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}
+.admin-console table{width:100%;border-collapse:collapse}
+.admin-console th{text-align:left;color:#52687a!important}
+.admin-console td{color:#102a3f;vertical-align:top;max-width:320px;overflow-wrap:anywhere}
+.admin-console tr:hover td{background:#f3f8f6}
+.admin-console [role=alert]{color:#a92323;background:#fff1f1;padding:12px;border-radius:8px}
+.admin-console [role=status]{color:#12664b;background:#e9f7ef;padding:12px;border-radius:8px}
+@media(max-width:1000px){.admin-console .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:767px){.admin-shell aside{position:static;max-height:none;gap:6px}.admin-shell aside>a:not(.brand){font-size:13px;padding:8px 10px}.admin-shell main{padding:22px 14px}.admin-shell .settings-panel{padding:18px 14px}.admin-console form{grid-template-columns:1fr;padding:16px;gap:16px}.admin-shell h1{font-size:25px}.admin-shell .top-actions{justify-content:flex-start;gap:14px}}
+@media(max-width:420px){.admin-console .metric-grid{grid-template-columns:1fr}.admin-shortcuts a{width:100%}}
