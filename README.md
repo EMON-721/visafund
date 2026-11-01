@@ -85,3 +85,12 @@ The synthetic demo is isolated from real saved records and labeled throughout. I
 The site uses managed Sites hosting. `.openai/hosting.json` contains only logical DB/BUCKET bindings and the Site project ID. Sites applies Drizzle migrations and provides dispatcher identity. Use the Sites source workflow and deployment tools; do not put credentials in source. Secrets are configured as runtime variables. Public deployment and production readiness require resolving the limits listed above.
 
 Validation performed: 16 financial assertions and 66 API integration checks using the built Worker with real emulated D1/R2. Browser-based Playwright and WebMCP validation were unavailable in this session. Responsive UI interactions and complete Bangla translation still need browser QA. Mutations use database-backed per-user minute limits; uploads are bounded at 10 MB and rate-limited separately.
+
+<!-- DEPLOYMENT LINKS: maintained for GitHub repository navigation -->
+## Website & repository links
+
+- **Source repository:** https://github.com/EMON-721/visafund
+- **Published website URL:** https://visafund.fundhub.workers.dev
+- **Availability:** Deployment URL recorded; live HTTP reachability could not be independently verified on 1 November 2026.
+
+<!-- END DEPLOYMENT LINKS -->
