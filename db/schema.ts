@@ -18,6 +18,13 @@ export const authFlows=sqliteTable('auth_flows',{hash:text('hash').primaryKey(),
 // Public reference-rate cache only; no user financial data.
 export const exchangeCache=sqliteTable('exchange_cache',{id:text('id').primaryKey(),body:text('body').notNull(),retryAfter:integer('retry_after').notNull().default(0)});
 
+// Personal IDs for display and alternative sign-in only; never a role or owner ID.
+export const platformProfileIds=sqliteTable('platform_profile_ids',{
+ id:integer('id').primaryKey({autoIncrement:true}),
+ owner:text('owner').notNull().references(()=>platformUsers.id),
+ created:text('created').notNull()
+},t=>[uniqueIndex('profile_owner_unique').on(t.owner)]);
+
 // Trusted roles and app-level session revocation. No financial owner identifiers change.
 export const platformRoles=sqliteTable('platform_roles',{owner:text('owner').primaryKey().references(()=>platformUsers.id),role:text('role').notNull().default('USER'),provisionedBy:text('provisioned_by').notNull().default('registration'),created:text('created').notNull()});
 export const revokedSessions=sqliteTable('auth_revoked_sessions',{issuer:text('issuer').notNull(),session:text('session').notNull(),subject:text('subject').notNull(),created:text('created').notNull()},t=>[uniqueIndex('revoked_session_key').on(t.issuer,t.session)]);
