@@ -19,7 +19,7 @@ const banSql=`UPDATE platform_users SET status='banned' WHERE status='active' AN
  */
 export async function wasAutomaticallyBanned(database:D1Database,owner:string):Promise<boolean>{
  const action=await database.prepare(
-  "SELECT action FROM platform_audit WHERE target=? AND action IN ('account.auto-ban-inactive','account.ban','account.unban','account.reactivate') ORDER BY created DESC,rowid DESC LIMIT 1"
+  "SELECT action FROM platform_audit WHERE target=? AND action IN ('account.auto-ban-inactive','account.ban','account.unban','account.reactivate') ORDER BY rowid DESC LIMIT 1"
  ).bind(owner).first<{action:string}>();
  return action?.action==='account.auto-ban-inactive';
 }
