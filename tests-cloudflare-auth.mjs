@@ -45,7 +45,7 @@ const configuration=await request('GET','/api/auth/config');assert.equal(configu
 await request('POST','/api/auth/signup',{role:'SUPER_ADMIN'},400);
 const invalid=await request('POST','/api/auth/login',{email:'wrong@example.test',password:'WrongPassword123',remember:false},401);assert.equal(invalid.error,'Invalid email or password.');checks++;
 const logged=await request('POST','/api/auth/login',{email:user.email,password:'SyntheticPassword123',remember:false},200,false);assert.equal(logged.redirect,'/dashboard');checks++;
-const membership=await request('GET','/api/membership');assert.equal(membership.role,'USER');assert.equal(membership.member.id,'supabase:'+subject);checks+=2;
+const membership=await request('GET','/api/membership');assert.equal(membership.role,'USER');assert.equal(membership.member.id,'supabase:'+subject);assert.equal(membership.member.profileId,'7050');checks+=3;
 const data=await request('GET','/api/data');assert.equal(data.accounts.length,0);checks++;
 const accountInput={name:'Synthetic own account',bank:'Synthetic bank',currency:'BDT',date:'2026-01-01',holder:'Synthetic user',ownership:'Self',type:'Savings account',country:'Bangladesh'};
 const zeroAccount=await request('POST','/api/data',{kind:'account',data:accountInput},201);
@@ -110,7 +110,7 @@ await db.prepare("UPDATE platform_users SET status='suspended' WHERE id=?").bind
 const suspended=await request('POST','/api/auth/login',{email:user.email,password:'SyntheticPassword123',remember:false},403);assert.ok(suspended.error.includes('suspended'));checks++;await request('GET','/api/data',null,401);
 await db.prepare("UPDATE platform_users SET status='active' WHERE id=?").bind('supabase:'+subject).run();
 await db.prepare("UPDATE platform_roles SET role='USER' WHERE owner=?").bind('supabase:'+subject).run();
-const again=await request('POST','/api/auth/login',{email:user.email,password:'SyntheticPassword123',remember:false});assert.equal(again.redirect,'/dashboard');checks++;await request('POST','/api/platform',{action:'save-module',data:{route:'accounts',enabled:false,label:'Bank accounts',description:''}},403);await db.prepare("UPDATE platform_users SET status='banned' WHERE id=?").bind('supabase:'+subject).run();await request('GET','/api/data',null,403);await db.prepare("UPDATE platform_users SET status='active' WHERE id=?").bind('supabase:'+subject).run();await request('POST','/api/auth/logout',{});await request('GET','/api/data',null,401);
+const again=await request('POST','/api/auth/login',{email:'7050',password:'SyntheticPassword123',remember:false});assert.equal(again.redirect,'/dashboard');checks++;await request('POST','/api/platform',{action:'save-module',data:{route:'accounts',enabled:false,label:'Bank accounts',description:''}},403);await db.prepare("UPDATE platform_users SET status='banned' WHERE id=?").bind('supabase:'+subject).run();await request('GET','/api/data',null,403);await db.prepare("UPDATE platform_users SET status='active' WHERE id=?").bind('supabase:'+subject).run();await request('POST','/api/auth/logout',{});await request('GET','/api/data',null,401);
 console.log(`Supabase SDK contract: ${checks} checks passed against a mocked provider; no real email delivery or MFA claim.`)
 }finally{await mf.dispose();await fetchMock.close()}
 
