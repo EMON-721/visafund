@@ -1,4 +1,4 @@
-const requiredTables=['accounts','transactions','records','documents','rules','audit','limits','platform_users','platform_roles','platform_audit','platform_content','platform_deletion_jobs','exchange_cache','auth_flows','auth_identities','auth_revoked_sessions'];
+const requiredTables=['accounts','transactions','records','documents','rules','audit','limits','platform_users','platform_profile_ids','platform_roles','platform_audit','platform_content','platform_deletion_jobs','exchange_cache','auth_flows','auth_identities','auth_revoked_sessions'];
 export async function inspectSystemHealth(database:D1Database){
  const started=Date.now();await database.prepare('SELECT 1 AS available').first();
  const tables=await database.prepare("SELECT name FROM sqlite_master WHERE type='table'").all<{name:string}>();
