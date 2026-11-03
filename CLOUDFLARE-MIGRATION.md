@@ -20,7 +20,7 @@ External builds discard all `oai-*` identity headers and set `EXTERNAL_HOSTING=t
 
 ## Supabase configuration
 
-Use the existing project `VisaFund Auth` (`xtimiytiuyeetgnzlftg`). Keep email verification enabled. Configure the actual staging origin as Site URL and explicitly allow `/auth/callback`, `/auth/callback?flow=recovery`, `/auth/confirm`, and `/auth/reset-password` at that origin. Signup email link must use `/auth/confirm?token_hash={{ .TokenHash }}&type=signup`; password recovery uses `/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`. Confirm email delivery and free-provider limits before saying public registration works. Do not bypass verification.
+Use the existing project `VisaFund Auth` (`xtimiytiuyeetgnzlftg`). The owner requested **no signup email verification**: in Supabase Authentication → Sign In / Providers → Email, turn **Confirm Email OFF**. The Supabase dashboard setting is mandatory; GitHub/Worker code cannot toggle it. With Confirm Email disabled, Supabase auto-confirms new password signups, returning a session. Note the significant account-impersonation risk: someone can claim another person's email; evaluate whether this is acceptable for a financial application. Do not disable MFA for administrators. Configure the actual Worker origin as Site URL, allow `/auth/callback` and recovery redirects, and retain password recovery/email-change protections where applicable. Existing pending-confirmation accounts are not automatically repaired by this change.
 
 The administrator registers/verifies like other users, then a trusted operator verifies provider UUID and provisions SUPER_ADMIN using `scripts/provision-admin.mjs`. A password is set privately through the authentication provider, never source code. MFA is required before admin access.
 
@@ -34,7 +34,11 @@ Apply additive migrations only after inspecting the imported schema and migratio
 
 ## Validation and launch
 
-Run TypeScript, finance/policy tests and the external Worker mocked-provider tests. Then execute real email verification, password reset, USER/SUPER_ADMIN/MFA, suspension/logout, User A versus User B, private documents, desktop/mobile browser navigation and protected preview access. Mock tests do not prove real mail or MFA delivery. Confirm free plan Worker bundle/runtime limits with an actual upload validation before deployment; local compilation does not prove hosting compatibility under account limits.
+Run TypeScript, finance/policy tests and the external Worker mocked-provider tests. Then test immediate no-verification signup (a unique new email), repeat signup rejection, login, password reset, USER/SUPER_ADMIN/MFA, 30-day activity tracking and cron bans, suspension/logout, User A versus User B, private documents, desktop/mobile browser navigation and protected preview access. Mock tests do not prove real mail or MFA delivery. Confirm free plan Worker bundle/runtime limits with an actual upload validation before deployment; local compilation does not prove hosting compatibility under account limits.
 
 Public Worker routing is already enabled as shown in the Cloudflare screenshot. Do not migrate original financial data, widen access, or retire the original website until these tests pass and the owner approves cutover.
 
+
+## Daily inactivity ban (new policy)
+
+The Worker entrypoint exports a `scheduled()` handler and `wrangler.cloudflare.jsonc` configures `0 3 * * *` UTC. The policy starts on 2026-11-03 and provides a 30-day grace period to prevent retroactive bans on older accounts. From 2026-12-03 onward, the Worker bans `active` non-`SUPER_ADMIN` accounts with `last_seen` at least 30 days old. An authenticated workspace/API visit updates `last_seen`; the initial access after 30 days is also checked against the ban condition. Ban does not delete account/financial information. Manually unban accounts through the existing audited admin controls. Verify the deployed Cron Trigger and D1 binding before announcing this as active.
