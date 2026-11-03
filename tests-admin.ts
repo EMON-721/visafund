@@ -12,7 +12,15 @@ let checks=0;const ok=(value:unknown)=>{assert.ok(value);checks++};
 try{const db=await mf.getD1Database('DB'),bucket=await mf.getR2Bucket('BUCKET');for(const f of (await readdir('drizzle')).filter(f=>f.endsWith('.sql')).sort())await db.exec((await readFile('drizzle/'+f,'utf8')).replaceAll('--> statement-breakpoint','').replaceAll('\n',' '));
 for(const id of ['admin','a','b'])await db.prepare("INSERT INTO platform_users(id,name,email,status,created,last_seen,preferences) VALUES(?,?,?,'active',?,?,'{}')").bind(id,id,id+'@example.test','2026-10-01','2026-10-01').run();
 await db.prepare('INSERT INTO accounts(id,owner,name,bank,currency,opening,date,details,created) VALUES(?,?,?,?,?,?,?,?,?)').bind('a-bank','a','PRIVATE_ACCOUNT_MARKER','bank','BDT',987654321,'2026-01-01','{}','2026-01-01').run();await db.prepare('INSERT INTO documents(id,owner,name,mime,size,hash,details,created) VALUES(?,?,?,?,?,?,?,?)').bind('a-doc','a','PRIVATE_DOCUMENT_MARKER','text/csv',5,'synthetic','{}','2026-01-01').run();await bucket.put('a/a-doc','original private bytes');await bucket.put('b/b-doc','user B original');
-for(const mode of ['users','overview','analytics','audit','security','health']){const view=await readPlatform(db,mode);ok(!JSON.stringify(view).includes('PRIVATE_'));ok(!JSON.stringify(view).includes('987654321'))}
+// Cover the API mode behind each of the 15 links in the admin sidebar.
+const sectionCases:readonly (readonly [string,string,string])[]=[
+ ['overview','overview','registered'],['modules','modules','modules'],['users','users','users'],['status','users','users'],
+ ['countries','countries','items'],['requirements','requirements','rules'],['rules','rules','rules'],
+ ['content','content','items'],['sources','sources','items'],['analytics','analytics','registered'],
+ ['notifications','notifications','items'],['security','security','events'],['audit','audit','events'],
+ ['health','health','schema'],['settings','settings','items']
+];
+for(const [section,mode,key] of sectionCases){const view=await readPlatform(db,mode);ok(key in view);ok(!JSON.stringify(view).includes('PRIVATE_'));ok(!JSON.stringify(view).includes('987654321'));if(section==='status')ok(mode==='users');}
 const filtered=await readPlatform(db,'users','a@example.test');ok('users' in filtered&&filtered.users?.length===1);
 for(const [action,status] of [['suspend','suspended'],['reactivate','active'],['ban','banned'],['unban','active']]){const result=await moderateAccount(db,'admin',{action,target:'a',reason:'Synthetic safety test'},['admin']);ok(result.status===status);ok(result.providerSessionsRevoked===false)}
 await assert.rejects(()=>moderateAccount(db,'admin',{action:'suspend',target:'admin',reason:'Synthetic test'},['admin']));checks++;
