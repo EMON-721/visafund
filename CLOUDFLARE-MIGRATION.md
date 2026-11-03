@@ -4,18 +4,18 @@ This repository preserves the existing VisaFund source at Sites version 17. It i
 
 ## Current state
 
-This is a PREPARATION branch, not a completed migration or a live preview. A separate staging D1 database has been configured; no production financial records were exported, changed, or reset. The current private Sites deployment remains the authoritative copy.
+This is a PREPARATION branch and the data migration is not yet verified as complete. On 3 November 2026, a Cloudflare Domains screenshot showed the public production Worker route `https://visafund.emon721.workers.dev` enabled. A separate staging D1 database is configured; no production financial records were exported, changed, or reset by these source changes. The private Sites deployment remains the source of any original data pending a verified migration.
 
 External builds discard all `oai-*` identity headers and set `EXTERNAL_HOSTING=true`. ChatGPT sign-in UI is hidden and email/password Supabase identity is required. Logout returns to `/login`. Server-owned roles, active membership, mandatory admin MFA and per-owner financial API access remain enforced. Public signup cannot assign an administrator role.
 
 ## Before connecting builds
 
-1. Keep the GitHub repository PRIVATE. Do not enable automatic Cloudflare deployment yet.
+1. Review GitHub repository visibility and production access: the repository is currently public and the production Worker URL is enabled. Never commit credentials, private documents or exported financial data. Restrict access or use staging for incomplete testing.
 2. Choose Cloudflare Workers, not a static Pages upload. Set the production branch only after configuration and migration review.
 3. Create a separate staging D1 database. Replace the placeholder database ID in `wrangler.cloudflare.jsonc` with its actual ID. Never point staging at the existing production database.
 4. External builds use the private Supabase `visafund-documents` bucket. Native Sites keeps its existing R2 binding. The Supabase migration enforces backend-only document operations and 10 MB PDF/PNG/JPEG/CSV restrictions. No R2 billing activation is needed for external builds. Existing documents still require a verified migration; source recovery does not move them.
 5. Install the pinned pnpm version and dependencies with `pnpm install --frozen-lockfile`. Build with `pnpm run build:cloudflare`. Cloudflare Workers deployment command is `pnpm run deploy:cloudflare`; do NOT run until bindings, privacy, authentication and data migration are verified.
-6. Default configuration has `workers_dev=false`, `preview_urls=false`, and no custom routes. These deliberately prevent a public endpoint. Keep these disabled until a protected staging access plan is implemented and verified. No deployment URL is claimed by this repository.
+6. The current configuration has `workers_dev=true`, `preview_urls=false`, and no custom routes. The enabled production `workers.dev` URL is public (unless restricted with Cloudflare Access); disabling previews does **not** protect production. Confirm staging data separation, authentication, access policy and storage permissions before using it with real financial data.
 7. Set runtime `SUPABASE_PUBLISHABLE_KEY` through Cloudflare's secure environment UI. The document adapter requires a separate `SUPABASE_STORAGE_SECRET_KEY` encrypted Worker Secret (`sb_secret_...`). This is privileged infrastructure access, not a user/admin permission. Never expose it to clients, logs, Git, or build-time public variables. The earlier no-secret Worker guidance has changed to support server-mediated storage; see PRIVATE-STORAGE.md. Keep the operator provisioning key separate. Set `SUPABASE_URL`, the actual `APP_ORIGIN`, and `AUTH_PROVIDER_ENABLED=true` only after provider configuration and verification tests. Keep `EXTERNAL_HOSTING=true`.
 
 ## Supabase configuration
@@ -36,5 +36,5 @@ Apply additive migrations only after inspecting the imported schema and migratio
 
 Run TypeScript, finance/policy tests and the external Worker mocked-provider tests. Then execute real email verification, password reset, USER/SUPER_ADMIN/MFA, suspension/logout, User A versus User B, private documents, desktop/mobile browser navigation and protected preview access. Mock tests do not prove real mail or MFA delivery. Confirm free plan Worker bundle/runtime limits with an actual upload validation before deployment; local compilation does not prove hosting compatibility under account limits.
 
-Do not enable public routing, merge into an auto-deployed production branch, or retire the original website until these tests pass and the owner approves launch.
+Public Worker routing is already enabled as shown in the Cloudflare screenshot. Do not migrate original financial data, widen access, or retire the original website until these tests pass and the owner approves cutover.
 
