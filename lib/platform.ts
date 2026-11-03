@@ -1,13 +1,16 @@
 import type {ChatGPTUser} from '@/app/chatgpt-auth';
 import {getAppUser as getChatGPTUser,authConfigured,verifiedAdminMFA} from '@/lib/supabase-auth';
 import { db,HttpError,now,uid } from '@/lib/server';
-import {banInactiveMember} from '@/lib/inactivity';
+import {banInactiveMember,wasAutomaticallyBanned} from '@/lib/inactivity';
 export type Member={id:string;name:string;email:string;status:'active'|'suspended'|'banned'|'deletion_pending'|'deleted';created:string;last_seen:string;terms_version:string|null;preferences:string};
 export async function isProvisionedAdmin(id:string){const r=await db().prepare("SELECT r.role FROM platform_roles r JOIN platform_users p ON p.id=r.owner WHERE r.owner=? AND p.status='active'").bind(id).first<{role:string}>();return r?.role==='SUPER_ADMIN'}
-export function restrictionMessage(status:string){return status==='suspended'?'This account is suspended. Contact support.':status==='banned'?'This account has been banned. Contact support.':'This account is restricted. Contact support.'}
+export function restrictionMessage(status:string,inactivityBan=false){return status==='suspended'?'This account is suspended. Contact support.':status==='banned'?(inactivityBan?'Your VisaFund account was automatically banned after 30 consecutive days of inactivity. To recover it, email the administrator.':'This account has been banned. Contact support.'):'This account is restricted. Contact support.'}
 export async function memberFor(user:ChatGPTUser):Promise<Member|null>{return db().prepare('SELECT * FROM platform_users WHERE id=?').bind(user.userId).first<Member>()}
-export async function activeMember(user:ChatGPTUser){let member=await memberFor(user);if(!member){const legacy=await db().prepare('SELECT id FROM accounts WHERE owner=? UNION ALL SELECT id FROM records WHERE owner=? UNION ALL SELECT id FROM documents WHERE owner=? LIMIT 1').bind(user.userId,user.userId,user.userId).first();if(legacy){await db().prepare("INSERT OR IGNORE INTO platform_users(id,name,email,status,created,last_seen,terms_version,preferences) VALUES (?,?,?,'active',?,?,NULL,'{}')").bind(user.userId,user.displayName,user.email,now(),now()).run();member=await memberFor(user)}}if(!member)throw new HttpError(403,'Complete registration to open your private workspace');if(member.status!=='active')throw new HttpError(403,restrictionMessage(member.status));
- if(await banInactiveMember(db(),user.userId))throw new HttpError(403,'This account has been banned after 30 days without use. Contact support to appeal.');
+export async function activeMember(user:ChatGPTUser){let member=await memberFor(user);if(!member){const legacy=await db().prepare('SELECT id FROM accounts WHERE owner=? UNION ALL SELECT id FROM records WHERE owner=? UNION ALL SELECT id FROM documents WHERE owner=? LIMIT 1').bind(user.userId,user.userId,user.userId).first();if(legacy){await db().prepare("INSERT OR IGNORE INTO platform_users(id,name,email,status,created,last_seen,terms_version,preferences) VALUES (?,?,?,'active',?,?,NULL,'{}')").bind(user.userId,user.displayName,user.email,now(),now()).run();member=await memberFor(user)}}if(!member)throw new HttpError(403,'Complete registration to open your private workspace');if(member.status!=='active'){
+  const auto=member.status==='banned'&&await wasAutomaticallyBanned(db(),user.userId);
+  throw new HttpError(403,restrictionMessage(member.status,auto),auto?'INACTIVITY_BAN':undefined);
+ }
+ if(await banInactiveMember(db(),user.userId))throw new HttpError(403,restrictionMessage('banned',true),'INACTIVITY_BAN');
  const t=now();
  const result=await db().prepare("UPDATE platform_users SET last_seen=? WHERE id=? AND status='active' RETURNING id").bind(t,user.userId).first<{id:string}>();
  if(!result)throw new HttpError(403,'Account access is restricted. Contact platform support.');
