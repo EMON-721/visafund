@@ -150,7 +150,15 @@ body {
 .auth-inline-success{color:#206749;font-weight:600;line-height:1.45;margin-top:3px}
 .auth-screen input[aria-invalid="true"]{border-color:#b42318;box-shadow:0 0 0 1px #b4231833}
 .auth-screen .auth-feedback{margin:0!important;padding:12px 14px;border-radius:8px;background:#eaf5ee;border:1px solid #c2dccf;color:#164733;font-size:13px;line-height:1.55}
-.auth-screen .auth-feedback.auth-error{background:#fff2f1;border-color:#f2b7b3;color:#a52727}.public-auth select{padding:10px;background:var(--card);color:var(--foreground);border:1px solid var(--input);border-radius:7px}.public-auth input:disabled{opacity:.6;cursor:not-allowed}.public-shell nav a{min-height:40px;display:inline-flex;align-items:center}
+.auth-screen .auth-feedback.auth-error{background:#fff2f1;border-color:#f2b7b3;color:#a52727}
+
+.auth-screen .auth-ban-notice{display:grid;gap:12px;margin:18px 0 24px;padding:18px;border:1px solid #e4a09d;border-radius:12px;background:#fff1f0;color:#7e2424;text-align:left}
+.auth-screen .auth-ban-notice strong{font-size:15px;line-height:1.5}
+.auth-screen .auth-ban-notice p{margin:0!important;color:#7e2424;font-size:14px;line-height:1.55}
+.auth-screen .auth-ban-notice small{display:block;color:#7d4847;line-height:1.5}
+.auth-screen .auth-ban-notice .auth-ban-contact{display:inline-flex;justify-content:center;align-items:center;min-height:42px;padding:10px 14px;border:1px solid #bf6a68;border-radius:8px;color:#7e2424;background:#fff;text-decoration:none;font-size:13px;font-weight:700;overflow-wrap:anywhere}
+.auth-screen .auth-ban-notice .auth-ban-contact:hover{background:#fff8f7}
+.public-auth select{padding:10px;background:var(--card);color:var(--foreground);border:1px solid var(--input);border-radius:7px}.public-auth input:disabled{opacity:.6;cursor:not-allowed}.public-shell nav a{min-height:40px;display:inline-flex;align-items:center}
 .top-actions{flex-wrap:wrap}.top-actions>a:not(.top-avatar):not(.notification-link){font-size:12px}.converter select{width:100%;min-height:42px;background:var(--card);color:var(--foreground);border:1px solid var(--input);border-radius:7px;padding:8px}.demo-banner{flex-wrap:wrap}@media(max-width:767px){.topbar{height:auto;min-height:59px;flex-wrap:wrap;gap:10px;padding-top:10px;padding-bottom:10px}.top-actions{justify-content:flex-start}.top-actions>a{min-height:32px;display:inline-flex;align-items:center}}
 
 .brand{display:inline-flex;align-items:center;gap:10px}.brand .visafund-logo{display:block;width:38px;height:38px;flex-shrink:0;border-radius:11px}
