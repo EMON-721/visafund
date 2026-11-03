@@ -108,6 +108,11 @@ const retention=await request('GET','/api/platform?mode=users');assert.equal(ret
 await request('POST','/api/auth/logout',{});await request('GET','/api/platform',null,401);
 await db.prepare("UPDATE platform_users SET status='suspended' WHERE id=?").bind('supabase:'+subject).run();
 const suspended=await request('POST','/api/auth/login',{email:user.email,password:'SyntheticPassword123',remember:false},403);assert.ok(suspended.error.includes('suspended'));checks++;await request('GET','/api/data',null,401);
+await db.prepare("UPDATE platform_users SET status='banned' WHERE id=?").bind('supabase:'+subject).run();
+await db.prepare("INSERT INTO platform_audit(id,actor,target,action,reason,created) VALUES(?,?,?,?,?,?)").bind(crypto.randomUUID(),'system','supabase:'+subject,'account.auto-ban-inactive','Synthetic 30-day inactivity',new Date().toISOString()).run();
+const autoBanned=await request('POST','/api/auth/login',{email:user.email,password:'SyntheticPassword123',remember:false},403);
+assert.equal(autoBanned.code,'INACTIVITY_BAN');assert.ok(autoBanned.error.includes('30 consecutive days'));checks+=2;
+
 await db.prepare("UPDATE platform_users SET status='active' WHERE id=?").bind('supabase:'+subject).run();
 await db.prepare("UPDATE platform_roles SET role='USER' WHERE owner=?").bind('supabase:'+subject).run();
 const again=await request('POST','/api/auth/login',{email:'7050',password:'SyntheticPassword123',remember:false});assert.equal(again.redirect,'/dashboard');checks++;await request('POST','/api/platform',{action:'save-module',data:{route:'accounts',enabled:false,label:'Bank accounts',description:''}},403);await db.prepare("UPDATE platform_users SET status='banned' WHERE id=?").bind('supabase:'+subject).run();await request('GET','/api/data',null,403);await db.prepare("UPDATE platform_users SET status='active' WHERE id=?").bind('supabase:'+subject).run();await request('POST','/api/auth/logout',{});await request('GET','/api/data',null,401);
