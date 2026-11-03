@@ -90,7 +90,7 @@ Validation performed: 16 financial assertions and 66 API integration checks usin
 ## Website & repository links
 
 - **Source repository:** https://github.com/EMON-721/visafund
-- **Published website URL:** https://visafund.fundhub.workers.dev
-- **Availability:** Deployment URL recorded; live HTTP reachability could not be independently verified on 1 November 2026.
+- **Published website URL:** https://visafund.emon721.workers.dev
+- **Availability:** Cloudflare Domains screenshot on 3 November 2026 confirms the `visafund` production `workers.dev` route is enabled under the `emon721` account subdomain. A successful end-to-end live HTTP/authentication test has not yet been verified.
 
 <!-- END DEPLOYMENT LINKS -->
