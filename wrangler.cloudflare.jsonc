@@ -12,7 +12,8 @@
     "AUTH_PROVIDER_ENABLED": "true",
     "SUPABASE_URL": "https://xtimiytiuyeetgnzlftg.supabase.co",
     "APP_ORIGIN": "https://visafund.emon721.workers.dev",
-    "SUPABASE_STORAGE_BUCKET": "visafund-documents"
+    "SUPABASE_STORAGE_BUCKET": "visafund-documents",
+    "INACTIVITY_POLICY_START": "2026-11-03T00:00:00.000Z"
   },
   "d1_databases": [
     {
@@ -21,5 +22,10 @@
       "database_id": "54006c53-74c4-47e8-b494-2726cf9cb8cd",
       "migrations_dir": "drizzle"
     }
-  ]
+  ],
+  "triggers": {
+    "crons": [
+      "0 3 * * *"
+    ]
+  }
 }
