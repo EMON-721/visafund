@@ -7,7 +7,8 @@ const require=createRequire(import.meta.url);
 const runtime=createRequire(require.resolve('wrangler/package.json'));
 const {Miniflare}=await import(pathToFileURL(runtime.resolve('miniflare')).href);
 import {freshMFA,recentPassword,recentSignIn,emailSchema,signupSchema,providerOwner,resolveProviderOwner,linkProviderOwner} from './lib/auth-policy.ts';
-import {inactivityCutoff,banInactiveUsers,banInactiveMember,INACTIVITY_DAYS} from './lib/inactivity.ts';
+import {inactivityCutoff,banInactiveUsers,banInactiveMember,INACTIVITY_DAYS,wasAutomaticallyBanned} from './lib/inactivity.ts';
+import {moderateAccount,readPlatform} from './lib/admin-service.ts';
 let checks=0;
 const ok=(value:unknown)=>{assert.ok(value);checks++};
 const no=(value:unknown)=>{assert.equal(value,false);checks++};
@@ -46,5 +47,16 @@ assert.equal(await banInactiveMember(db,'late-idle',timestamp),true);checks++;
 assert.equal((await db.prepare("SELECT status FROM platform_users WHERE id='late-idle'").first<{status:string}>())?.status,'banned');checks++;
 assert.equal((await db.prepare("SELECT COUNT(*) AS n FROM platform_audit WHERE action='account.auto-ban-inactive'").first<{n:number}>())?.n,2);checks++;
 assert.equal((await db.prepare("SELECT owner FROM accounts WHERE id='existing'").first<{owner:string}>())?.owner,'legacy-owner');checks++;
+assert.equal(await wasAutomaticallyBanned(db,'idle-user'),true);checks++;
+const bannedListing=await readPlatform(db,'users','','banned');
+assert.equal((bannedListing.users.find(r=>r.id==='idle-user') as {ban_reason?:string}|undefined)?.ban_reason,'30-day inactivity');checks++;
+const recovered=await moderateAccount(db,'trusted-admin',{action:'unban',target:'idle-user',reason:'Admin reviewed and approved recovery from inactivity'},[]);
+assert.equal(recovered.status,'active');checks++;
+const unbanned=await db.prepare("SELECT status,last_seen FROM platform_users WHERE id='idle-user'").first<{status:string;last_seen:string}>();
+assert.equal(unbanned?.status,'active');checks++;
+assert.ok(Date.now()-Date.parse(unbanned!.last_seen)<60000);checks++;
+assert.equal(await wasAutomaticallyBanned(db,'idle-user'),false);checks++;
+assert.equal((await db.prepare("SELECT COUNT(*) AS count FROM platform_audit WHERE target='idle-user' AND action='account.unban'").first<{count:number}>())?.count,1);checks++;
+
 console.log(`Authentication policy: ${checks} checks passed (synthetic policy/D1 checks; no real provider email/MFA flow).`)}finally{await mf.dispose()}
 
