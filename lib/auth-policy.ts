@@ -1,6 +1,6 @@
 import {z} from 'zod';
 export const emailSchema=z.string().trim().toLowerCase().email().max(254);
-export const passwordSchema=z.string().min(12,'Use at least 12 characters').max(128).refine(v=>/[a-z]/.test(v)&&/[A-Z]/.test(v)&&/[0-9]/.test(v),'Include upper/lowercase letters and a number');
+export const passwordSchema=z.string().min(8,'Use at least 8 characters').max(128).refine(v=>/[a-z]/.test(v)&&/[A-Z]/.test(v)&&/[0-9]/.test(v),'Include upper/lowercase letters and a number');
 export const signupSchema=z.object({name:z.string().trim().min(1).max(100),email:emailSchema,password:passwordSchema,confirmation:z.string(),country:z.string().trim().min(1).max(100),currency:z.string().length(3),language:z.enum(['en','bn']),agree:z.literal(true)}).strict().refine(v=>v.password===v.confirmation,{path:['confirmation'],message:'Passwords do not match'});
 export function recentPassword(claims:Record<string,unknown>,now=Date.now()/1000){return Array.isArray(claims.amr)&&claims.amr.some(x=>x&&typeof x==='object'&&x.method==='password'&&typeof x.timestamp==='number'&&x.timestamp<=now+30&&x.timestamp>=now-300)}
 export function recentSignIn(claims:Record<string,unknown>,now=Date.now()/1000){return Array.isArray(claims.amr)&&claims.amr.some(x=>x&&typeof x==='object'&&['password','oauth'].includes(x.method)&&typeof x.timestamp==='number'&&x.timestamp<=now+30&&x.timestamp>=now-300)}
