@@ -173,6 +173,18 @@ CREATE TABLE IF NOT EXISTS `auth_revoked_sessions` (
 CREATE UNIQUE INDEX IF NOT EXISTS `revoked_session_key` ON `auth_revoked_sessions` (`issuer`,`session`);
 
 INSERT OR IGNORE INTO platform_roles(owner,role,provisioned_by,created) SELECT id,'USER','migration',created FROM platform_users;
+CREATE TABLE IF NOT EXISTS platform_profile_ids(
+ id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+ owner TEXT NOT NULL,
+ created TEXT NOT NULL,
+ FOREIGN KEY(owner) REFERENCES platform_users(id) ON DELETE NO ACTION
+);
+CREATE UNIQUE INDEX IF NOT EXISTS profile_owner_unique ON platform_profile_ids(owner);
+INSERT INTO sqlite_sequence(name,seq)
+SELECT 'platform_profile_ids',7049
+WHERE NOT EXISTS(SELECT 1 FROM sqlite_sequence WHERE name='platform_profile_ids');
+INSERT OR IGNORE INTO platform_profile_ids(owner,created)
+SELECT id,created FROM platform_users ORDER BY created,id;
 
 
 SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE '_cf_%' ORDER BY name;
