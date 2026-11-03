@@ -7,6 +7,7 @@ const require=createRequire(import.meta.url);
 const runtime=createRequire(require.resolve('wrangler/package.json'));
 const {Miniflare}=await import(pathToFileURL(runtime.resolve('miniflare')).href);
 import {freshMFA,recentPassword,recentSignIn,emailSchema,signupSchema,providerOwner,resolveProviderOwner,linkProviderOwner} from './lib/auth-policy.ts';
+import {inactivityCutoff,banInactiveUsers,banInactiveMember,INACTIVITY_DAYS} from './lib/inactivity.ts';
 let checks=0;
 const ok=(value:unknown)=>{assert.ok(value);checks++};
 const no=(value:unknown)=>{assert.equal(value,false);checks++};
@@ -26,5 +27,24 @@ await assert.rejects(()=>linkProviderOwner(db,issuer,subject,'different-owner'))
 await db.prepare("INSERT INTO accounts(id,owner,name,bank,currency,opening,date,details,created) VALUES('other',?,'Test','Test','BDT',100,'2026-01-01','{}','2026-01-01')").bind(providerOwner(other)).run();await assert.rejects(()=>linkProviderOwner(db,issuer,other,'different-owner'));checks++;
 await db.prepare("DELETE FROM accounts WHERE id='other'").run();await db.prepare("INSERT INTO platform_users(id,name,email,status,created,last_seen,preferences) VALUES(?,'Test','test@example.test','banned','2026-01-01','2026-01-01','{}')").bind(providerOwner(other)).run();await assert.rejects(()=>linkProviderOwner(db,issuer,other,'different-owner'));checks++;
 ok((await db.prepare("SELECT id FROM platform_audit WHERE action='identity.link'").all()).results.length>0);
+// Inactivity ban must preserve Super Admins and all financial data.
+const timestamp=Date.parse('2026-12-08T00:00:00.000Z');
+assert.equal(INACTIVITY_DAYS,30);checks++;
+assert.equal(inactivityCutoff(Date.parse('2026-11-15T00:00:00.000Z')),null);checks++;
+assert.equal(inactivityCutoff(timestamp),'2026-11-08T00:00:00.000Z');checks++;
+for(const [id,last] of [['idle-user','2026-11-04T00:00:00.000Z'],['active-user','2026-12-05T00:00:00.000Z'],['idle-owner','2026-11-04T00:00:00.000Z']]){
+ await db.prepare("INSERT INTO platform_users(id,name,email,status,created,last_seen,preferences) VALUES(?,?,?,'active',?,?,?)").bind(id,id,id+'@example.test','2026-11-03T00:00:00.000Z',last,'{}').run();
+}
+await db.prepare("INSERT INTO platform_roles(owner,role,provisioned_by,created) VALUES('idle-owner','SUPER_ADMIN','test','2026-11-03T00:00:00.000Z')").run();
+assert.equal(await banInactiveUsers(db,timestamp),1);checks++;
+assert.equal((await db.prepare("SELECT status FROM platform_users WHERE id='idle-user'").first<{status:string}>())?.status,'banned');checks++;
+assert.equal((await db.prepare("SELECT status FROM platform_users WHERE id='active-user'").first<{status:string}>())?.status,'active');checks++;
+assert.equal((await db.prepare("SELECT status FROM platform_users WHERE id='idle-owner'").first<{status:string}>())?.status,'active');checks++;
+assert.equal(await banInactiveUsers(db,timestamp),0);checks++;
+await db.prepare("INSERT INTO platform_users(id,name,email,status,created,last_seen,preferences) VALUES('late-idle','Late','late@example.test','active','2026-11-03T00:00:00.000Z','2026-11-05T00:00:00.000Z','{}')").run();
+assert.equal(await banInactiveMember(db,'late-idle',timestamp),true);checks++;
+assert.equal((await db.prepare("SELECT status FROM platform_users WHERE id='late-idle'").first<{status:string}>())?.status,'banned');checks++;
+assert.equal((await db.prepare("SELECT COUNT(*) AS n FROM platform_audit WHERE action='account.auto-ban-inactive'").first<{n:number}>())?.n,2);checks++;
+assert.equal((await db.prepare("SELECT owner FROM accounts WHERE id='existing'").first<{owner:string}>())?.owner,'legacy-owner');checks++;
 console.log(`Authentication policy: ${checks} checks passed (synthetic policy/D1 checks; no real provider email/MFA flow).`)}finally{await mf.dispose()}
 
