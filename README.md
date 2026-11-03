@@ -1,5 +1,13 @@
 # VisaFund — Cloudflare preparation
 
+## User sign-up options and personal ID (7050 series)
+
+The **existing Continue with Google** option remains available. Alternatively, a user can register with **name, email, and a required password** (plus the existing country, currency and language fields); email verification is required before the workspace is created. Users choose **one** registration method, not both. Google sign-in does not require a separate VisaFund password.
+
+After a verified user workspace is created, VisaFund assigns a stable, unique personal profile number in the sequence **7050, 7051, 7052, ...**. It appears only inside the signed-in user's Settings → Profile. Email/password users can later log in using their verified **email or assigned User ID plus password**. Existing Google sign-in works as before. The profile number does **not** replace the Supabase UUID, financial owner keys, or server-assigned roles.
+
+**Deployment prerequisite:** apply the additive D1 migration `drizzle/0007_profile_ids.sql` to the actual Worker-bound D1 database after backing it up and confirming the correct environment. The migration backfills existing users without resetting or rewriting financial records. Until applied, all existing sign-in methods remain usable, but profile IDs show as pending and ID/password login is unavailable. The new migration is also represented in `scripts/visafund-staging-bootstrap.sql`. Verify both registration methods with disposable test accounts, the personal profile ID, and login via ID before declaring production rollout complete.
+
 This is the current existing VisaFund source. See [CLOUDFLARE-MIGRATION.md](CLOUDFLARE-MIGRATION.md) before deploying. Runtime authentication configuration, private staging access, and verified production data/file migration are still required. External builds now use backend-only Supabase private Storage; see [PRIVATE-STORAGE.md](PRIVATE-STORAGE.md). No public deployment has been performed.
 
 Cloudflare build branch: `cloudflare-preparation`. Build with `npm run build:cloudflare`; deploy with `npm run deploy:cloudflare`. Public Worker and preview URLs remain disabled in the repository configuration.
