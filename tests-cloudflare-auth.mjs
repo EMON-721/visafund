@@ -24,7 +24,7 @@ provider.intercept({path:'/auth/v1/token?grant_type=password',method:'POST'}).re
 provider.intercept({path:'/auth/v1/token?grant_type=password',method:'POST'}).reply(200,next).persist();
 provider.intercept({path:'/auth/v1/user',method:'GET'}).reply(200,user).persist();
 provider.intercept({path:'/auth/v1/.well-known/jwks.json',method:'GET'}).reply(200,{keys:[jwk]}).persist();
-provider.intercept({path:'/auth/v1/signup?redirect_to=https%3A%2F%2Fsite.test%2Fauth%2Fcallback',method:'POST'}).reply(200,{user:{...user,email_confirmed_at:null}}).persist();
+provider.intercept({path:'/auth/v1/signup',method:'POST'}).reply(200,{user,session}).persist();
 provider.intercept({path:'/auth/v1/verify',method:'POST'}).reply(200,next).persist();
 provider.intercept({path:'/auth/v1/user',method:'PUT'}).reply(200,user).persist();
 provider.intercept({path:'/auth/v1/recover?redirect_to=https%3A%2F%2Fsite.test%2Fauth%2Fcallback%3Fflow%3Drecovery',method:'POST'}).reply(200,{}).persist();
@@ -65,7 +65,7 @@ const signout=await request('POST','/api/auth/logout',{});assert.equal(signout.r
 await request('GET','/api/data',null,401);
 const replay=await mf.dispatchFetch('https://site.test/api/data',{headers:{cookie:capturedCookie}});assert.equal(replay.status,401);checks++;
 await request('POST','/api/auth/login',{email:user.email,password:'SyntheticPassword123',remember:true,admin:true},400);
-await request('POST','/api/auth/signup',{name:'Synthetic user',email:user.email,password:'SyntheticPassword123',confirmation:'SyntheticPassword123',country:'Bangladesh',currency:'BDT',language:'en',agree:true},202);
+const newSignup=await request('POST','/api/auth/signup',{name:'Synthetic user',email:user.email,password:'SyntheticPassword123',confirmation:'SyntheticPassword123',country:'Bangladesh',currency:'BDT',language:'en',agree:true},201);assert.equal(newSignup.redirect,'/dashboard');checks++;
 await request('POST','/api/auth/forgot',{email:user.email},202);
 await request('GET','/auth/confirm?token_hash=synthetic-recovery-proof&type=recovery',null,303);
 const flow=await db.prepare('SELECT hash FROM auth_flows').first();assert.ok(flow);assert.ok(flow.hash!==jar.get('vf-recovery'));checks+=2;
