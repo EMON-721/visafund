@@ -11,7 +11,7 @@
     "EXTERNAL_HOSTING": "true",
     "AUTH_PROVIDER_ENABLED": "true",
     "SUPABASE_URL": "https://xtimiytiuyeetgnzlftg.supabase.co",
-    "APP_ORIGIN": "https://visafund.fundhub.workers.dev",
+    "APP_ORIGIN": "https://visafund.emon721.workers.dev",
     "SUPABASE_STORAGE_BUCKET": "visafund-documents"
   },
   "d1_databases": [
