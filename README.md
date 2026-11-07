@@ -1,5 +1,10 @@
 # VisaFund — Cloudflare preparation
 
+## Administration and account management
+
+VisaFund includes a role-restricted management area for maintaining official-source rules, reviewing relevant account activity and managing user access. Administrative actions include restoring accounts suspended by the inactivity policy and publishing rule changes only after official-source checks. Financial records remain associated with their respective users; a public profile ID is not an authorization credential.
+
+
 ## User sign-up options and personal ID (7050 series)
 
 The **existing Continue with Google** option remains available. Alternatively, a user can register with **name, email, and a required password** (plus the existing country, currency and language fields); no email verification is requested when Supabase Authentication → Sign In / Providers → Email → Confirm Email is disabled. Users choose **one** registration method, not both. Google sign-in does not require a separate VisaFund password.
@@ -98,11 +103,8 @@ The site uses managed Sites hosting. `.openai/hosting.json` contains only logica
 
 Validation performed: 16 financial assertions and 66 API integration checks using the built Worker with real emulated D1/R2. Browser-based Playwright and WebMCP validation were unavailable in this session. Responsive UI interactions and complete Bangla translation still need browser QA. Mutations use database-backed per-user minute limits; uploads are bounded at 10 MB and rate-limited separately.
 
-<!-- DEPLOYMENT LINKS: maintained for GitHub repository navigation -->
 ## Website & repository links
 
-- **Source repository:** https://github.com/EMON-721/visafund
+- **Source repository:** https://github.com/emonhossain24/visafund
 - **Published website URL:** https://visafund.emon721.workers.dev
-- **Availability:** Cloudflare Domains screenshot on 3 November 2026 confirms the `visafund` production `workers.dev` route is enabled under the `emon721` account subdomain. A successful end-to-end live HTTP/authentication test has not yet been verified.
 
-<!-- END DEPLOYMENT LINKS -->
