@@ -63,7 +63,7 @@ Money is stored as integer minor units, with zero decimal places for JPY/KRW and
 D1 has no PostgreSQL row-level security. Ownership authorization is implemented in the service and prepared queries. This is a justified hosting-compatible alternative; it is not a PostgreSQL/Supabase implementation.
 
 
-Documents use private R2 storage with authenticated downloads, size/type checks, and SHA-256 hashes. Originals are never rewritten. Malware scanning is not yet integrated.
+Documents use private R2 storage with authenticated downloads, size/type checks, and SHA-256 hashes. Originals are never rewritten. Uploaded documents should be treated as untrusted and handled with care.
 
 ## Implemented workflows
 
