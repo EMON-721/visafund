@@ -1,10 +1,5 @@
 # VisaFund — Cloudflare preparation
 
-## Administration and account management
-
-VisaFund includes a role-restricted management area for maintaining official-source rules, reviewing relevant account activity and managing user access. Administrative actions include restoring accounts suspended by the inactivity policy and publishing rule changes only after official-source checks. Financial records remain associated with their respective users; a public profile ID is not an authorization credential.
-
-
 ## User sign-up options and personal ID (7050 series)
 
 The **existing Continue with Google** option remains available. Alternatively, a user can register with **name, email, and a required password** (plus the existing country, currency and language fields); no email verification is requested when Supabase Authentication → Sign In / Providers → Email → Confirm Email is disabled. Users choose **one** registration method, not both. Google sign-in does not require a separate VisaFund password.
@@ -27,7 +22,6 @@ Cloudflare build branch: `cloudflare-preparation`. Build with `npm run build:clo
 - TypeScript: passed.
 - Finance: 21 assertions passed.
 - Auth policy: 29 checks passed.
-- Admin service: 56 checks passed.
 - External Worker and mocked Supabase provider: 109 checks passed, including forged native identity rejection, role redirects, MFA gating, owner isolation and logout/session replay rejection.
 - Private Storage adapter: 23 checks passed using a mocked transport.
 - Real email delivery, real MFA, browser/mobile QA, data export/restore and deployed Cloudflare account limits: not tested.
@@ -62,13 +56,12 @@ pnpm build
 
 ## Data and authorization
 
-Financial APIs use the dispatcher-provided ChatGPT identity. All reads, mutations, downloads, and exports require that identity and query by owner. Sponsor records are information only: no third-party sponsor sharing has been enabled. Administrators only edit global rules and cannot use that role to browse another user’s finances.
+Financial APIs use the dispatcher-provided ChatGPT identity. All reads, mutations, downloads, and exports require that identity and query by owner. Sponsor records are information only: no third-party sponsor sharing has been enabled.
 
 Money is stored as integer minor units, with zero decimal places for JPY/KRW and two for supported other currencies. Same-currency transfer amounts must agree; cross-currency transfers record the actual debited and credited amounts. Both entries and audit events commit atomically. Imported rows are immutable and deduplicated. Manual corrections retain audit snapshots. CSV exports protect against spreadsheet formula injection.
 
 D1 has no PostgreSQL row-level security. Ownership authorization is implemented in the service and prepared queries. This is a justified hosting-compatible alternative; it is not a PostgreSQL/Supabase implementation.
 
-Set ADMIN_EMAILS as a hosted environment variable to a comma-separated explicit allowlist. Leave it empty to disable all rule administration. No administrator is provisioned implicitly.
 
 Documents use private R2 storage with authenticated downloads, size/type checks, and SHA-256 hashes. Originals are never rewritten. Malware scanning is not yet integrated.
 
@@ -82,7 +75,7 @@ Documents use private R2 storage with authenticated downloads, size/type checks,
 - Date-range dashboard, trends, source analysis, calendar, balance reconciliation
 - Sponsors, scholarships, savings goals, targets, budgets, manual rate records
 - Private documents, preparation checklist, derived in-app reminders
-- Country directory, comparison, immutable administrator rule versions
+- Country directory, comparison, versioned country rules
 - Unofficial print/PDF summaries and JSON data export
 - Theme switch, English/Bangla navigation and dashboard, responsive layouts
 - Financial data deletion with document removal
@@ -93,7 +86,7 @@ This is the working foundation and core planning application, not the complete p
 
 Reports use the browser's Print / Save as PDF, not a server-generated PDF attachment. A small dataset could be validated by closing balance without a complete history; the UI discloses this. Chart analysis is capped at 2,000 rows per selected period and warns on truncation. The oldest opening balance should precede all recorded transactions.
 
-Admin rule publication requires manual official source verification; URL presence alone is not automated verification. Verify current official requirements before publishing a rule. Email credentials, bank PINs, and full account numbers are never requested.
+Country and visa rules should be checked against current official sources before use. Email credentials, bank PINs, and full account numbers are never requested.
 
 The synthetic demo is isolated from real saved records and labeled throughout. Its example includes October 10, 2026 for the specified closing-balance demonstration. It must never be submitted as real evidence.
 
